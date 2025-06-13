@@ -51,7 +51,7 @@ def detect_led(hsv, color):
     elif color == 'white':
         mask = cv2.inRange(hsv, (0, 0, 245), (180, 10, 255))
     elif color == 'yellow':
-        mask = cv2.inRange(hsv, (19, 108, 118), (33, 255, 255))
+       mask = cv2.inRange(hsv, (0, 124, 224), (36, 255, 255))  # H(0-36), S(124-255), V(224-255)
     else:
         return None
 
