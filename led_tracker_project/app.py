@@ -109,8 +109,10 @@ def gen_frames():
                 if point:
                     latest_detected_positions[color] = stabilize_point(point, color)
                     last_seen_time[color] = current_time
-                elif current_time - last_seen_time[color] > 1.5:
-                    latest_detected_positions[color] = None
+                elif color != 'yellow' and current_time - last_seen_time[color] > 1.5:
+                 latest_detected_positions[color] = None
+       # elif current_time - last_seen_time[color] > 1.5:
+       #   latest_detected_positions[color] = None
 
         color_map = {
             'red': (0, 0, 255),
