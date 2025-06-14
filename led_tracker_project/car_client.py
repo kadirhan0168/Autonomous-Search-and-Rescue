@@ -45,7 +45,7 @@ class CarController:
 
         # Besturingslogica
         command = None
-        if distance < 50:
+        if distance < 300:
             command = "stop"
             print("Doel bereikt!")
         elif abs(angle_diff) > 20:

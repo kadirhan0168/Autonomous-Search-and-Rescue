@@ -114,6 +114,7 @@ def gen_frames():
        # elif current_time - last_seen_time[color] > 1.5:
        #   latest_detected_positions[color] = None
 
+
         color_map = {
             'red': (0, 0, 255),
             'green': (0, 255, 0),
