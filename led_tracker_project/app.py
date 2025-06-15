@@ -40,20 +40,45 @@ def stabilize_point(new_point, color):
         return new_point
 
 def detect_led(hsv, color):
+#    if color == 'red':
+#        mask1 = cv2.inRange(hsv, (0, 150, vmin_value), (red_hue_max, 255, 255))
+#        mask2 = cv2.inRange(hsv, (170, 150, vmin_value), (180, 255, 255))
+#        mask = cv2.bitwise_or(mask1, mask2)
+
+#    elif color == 'green':
+#        mask = cv2.inRange(hsv, (35, 150, vmin_value), (green_hue_max, 255, 255))
+#        mask = cv2.inRange(hsv, (35, 150, vmin_value), (85, 255, 255)) # van de andere code
+
+#    elif color == 'blue':
+#        mask = cv2.inRange(hsv, (116, 112, 240), (119, 255, 255))
+#        mask = cv2.inRange(hsv, (110, 60, 180), (120, 255, 255)) # de is echt de beste
+
+#    elif color == 'white':
+#        mask = cv2.inRange(hsv, (0, 0, 245), (180, 10, 255))
+#        mask = cv2.inRange(hsv, (0, 0, 245), (180, 30, 255))  # van de andere code
+#
+#    elif color == 'yellow':
+#       mask = cv2.inRange(hsv, (0, 124, 224), (36, 255, 255))  # H(0-36), S(124-255), V(224-255)
+#       mask = cv2.inRange(hsv, (19, 108, 118), (33, 255, 255))
+#       mask = cv2.inRange(hsv, (0, 43, 232), (29, 156, 255))  # H(0-29), S(43-156), V(232-255)
+
+
     if color == 'red':
-        mask1 = cv2.inRange(hsv, (0, 150, vmin_value), (red_hue_max, 255, 255))
+        mask1 = cv2.inRange(hsv, (0, 150, vmin_value), (10, 255, 255))
         mask2 = cv2.inRange(hsv, (170, 150, vmin_value), (180, 255, 255))
         mask = cv2.bitwise_or(mask1, mask2)
     elif color == 'green':
+    #   mask = cv2.inRange(hsv, (35, 150, vmin_value), (85, 255, 255))
         mask = cv2.inRange(hsv, (35, 150, vmin_value), (green_hue_max, 255, 255))
     elif color == 'blue':
-        mask = cv2.inRange(hsv, (116, 112, 240), (119, 255, 255))
+        #mask = cv2.inRange(hsv, (100, 150, vmin_value), (130, 255, 255))
+    #   mask = cv2.inRange(hsv, (116, 112, 240), (119, 255, 255))
+       mask = cv2.inRange(hsv, (110, 60, 180), (120, 255, 255))
     elif color == 'white':
-        mask = cv2.inRange(hsv, (0, 0, 245), (180, 10, 255))
+        mask = cv2.inRange(hsv, (0, 0, 245), (180, 30, 255))
     elif color == 'yellow':
-       mask = cv2.inRange(hsv, (0, 124, 224), (36, 255, 255))  # H(0-36), S(124-255), V(224-255)
-       #mask = cv2.inRange(hsv, (19, 108, 118), (33, 255, 255))
-       #mask = cv2.inRange(hsv, (0, 43, 232), (29, 156, 255))  # H(0-29), S(43-156), V(232-255)
+        mask = cv2.inRange(hsv, (0, 124, 224), (36, 255, 255))  # H(0-36), S(124-255), V(224-255)
+
 
     else:
         return None
