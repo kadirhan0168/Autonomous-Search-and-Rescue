@@ -79,7 +79,7 @@ def main():
     client.on_message = car.on_message
 
     try:
-        client.connect("localhost", 1883, 60)
+        client.connect("192.168.2.7", 1883, 60)
     except:
         print(f"{color.upper()}: Kan geen verbinding maken met MQTT broker op localhost:1883.")
         sys.exit(1)
@@ -186,7 +186,7 @@ if __name__ == "__main__":
 #     client.on_message = car.on_message
 #
 #     try:
-#         client.connect("localhost", 1883, 60)
+#         client.connect("192.168.2.7", 1883, 60)
 #     except:
 #         print(f"{color.upper()}: Kan geen verbinding maken met MQTT broker op localhost:1883.")
 #         sys.exit(1)
