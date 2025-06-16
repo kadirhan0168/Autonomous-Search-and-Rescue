@@ -10,7 +10,9 @@ app = Flask(__name__)
 
 # MQTT setup
 mqtt_client = mqtt.Client()
-mqtt_client.connect("192.168.2.7", 1883, 60)
+#mqtt_client.connect("192.168.2.7", 1883, 60)
+mqtt_client.connect("172.20.10.2", 1883, 60)
+
 mqtt_client.loop_start()
 
 # Parameters

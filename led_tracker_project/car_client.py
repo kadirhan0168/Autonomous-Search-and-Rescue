@@ -80,6 +80,7 @@ def main():
 
     try:
         client.connect("192.168.2.7", 1883, 60)
+        #client.connect("172.20.10.2", 1883, 60)
     except:
         print(f"{color.upper()}: Kan geen verbinding maken met MQTT broker op localhost:1883.")
         sys.exit(1)
@@ -187,6 +188,7 @@ if __name__ == "__main__":
 #
 #     try:
 #         client.connect("192.168.2.7", 1883, 60)
+#         client.connect("172.20.10.2", 1883, 60)
 #     except:
 #         print(f"{color.upper()}: Kan geen verbinding maken met MQTT broker op localhost:1883.")
 #         sys.exit(1)
