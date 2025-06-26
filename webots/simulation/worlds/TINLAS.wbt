@@ -1,0 +1,112 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "../protos/chariot.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/robots/bitcraze/crazyflie/protos/Crazyflie.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/computers/protos/DesktopComputer.proto"
+EXTERNPROTO "../protos/chariot_blue.proto"
+
+WorldInfo {
+  defaultDamping Damping {
+  }
+  contactProperties [
+    ContactProperties {
+      material1 "high_friction_ball"
+      coulombFriction [
+        1.2
+      ]
+      bounce 0
+    }
+  ]
+}
+Viewpoint {
+  orientation -0.36458039107133755 0.36095407782928046 0.858366642026986 1.7328110038453088
+  position -0.37781145293868973 -4.316745450729663 4.356308513765298
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+DEF ARENA RectangleArena {
+  floorSize 3 3
+  floorAppearance Appearance {
+    texture ImageTexture {
+      url [
+        "../../grass2.jpg"
+      ]
+    }
+  }
+  wallHeight 0.2
+}
+DEF CHARIOT_RED chariot {
+  translation 0.48319 -0.75288 -6.08402e-14
+}
+Crazyflie {
+  translation -2 -1 0.015
+  controller "<none>"
+  supervisor TRUE
+  extensionSlot [
+    Camera {
+      rotation 0 1 0 1.57
+      name "camera(1)"
+      fieldOfView 1.2
+      width 1920
+      height 1080
+    }
+  ]
+}
+Robot {
+  translation 0 0 -1
+  children [
+    DesktopComputer {
+    }
+  ]
+  name "server"
+  controller "central_server"
+}
+DEF TARGET Robot {
+  translation -0.740298 1.00165 -0.45
+  children [
+    Solid {
+      children [
+        PointLight {
+          attenuation 0 0 1
+          color 1 0.2 1
+          location 0 0.3 0
+        }
+      ]
+    }
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1 0 0
+        roughness 1
+        metalness 0
+        emissiveColor 1 0.2 1
+      }
+      geometry Box {
+        size 0.1 0.1 0.1
+      }
+    }
+  ]
+  name "target"
+  controller "<none>"
+}
+DEF TREE_SPAWNER Robot {
+  name "tree_spawner"
+  controller "chariot_init"
+  supervisor TRUE
+}
+RectangleArena {
+  translation -2 -1 0
+  name "rectangle arena(1)"
+  floorAppearance PBRAppearance {
+    baseColor 0 0 0
+    roughness 1
+    metalness 0
+  }
+  wallHeight 0.001
+}
+DEF CHARIOT_BLUE chariot_blue {
+}

@@ -1,0 +1,217 @@
+#VRML_SIM R2023b utf8
+PROTO chariot_blue [
+  field SFVec3f    translation     0 0 0
+  field SFRotation rotation        0 0 1 0
+  field SFString   name            "chariot_blue"
+  field SFString   controller      "chariot_blue"
+  field SFBool     selfCollision   FALSE
+  field SFVec3f    bodyScale       0.001 0.001 0.001
+  field SFVec3f    topScale        0.001 0.001 0.001
+]
+{
+  Robot {
+    translation IS translation
+    rotation IS rotation
+    name IS name
+    controller IS controller
+    selfCollision IS selfCollision
+    children [
+      Transform {
+        translation -0.004 0.018 0
+        scale IS bodyScale
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0 0.1 0.2
+              roughness 1
+              metalness 0
+            }
+            geometry Mesh {
+              url ["../Robot/WeirdBODY.stl"]
+            }
+          }
+        ]
+      }
+
+      # Front White LED
+      Transform {
+        translation -0.003 -0.057 0.029  # Positioned at front
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 1 1 1  # White
+              emissiveColor 1 1 1
+              roughness 0.3
+              metalness 0.1
+            }
+            geometry Sphere {
+              radius 0.01
+            }
+          }
+        ]
+      }
+
+      # Rear Blue LED
+      Transform {
+        translation -0.003 0.065 0.029  # Positioned at back
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0 0 1  # Blue
+              emissiveColor 0 0 1
+              roughness 0.3
+              metalness 0.1
+            }
+            geometry Sphere {
+              radius 0.01
+            }
+          }
+        ]
+      }
+
+      HingeJoint {
+        jointParameters HingeJointParameters {
+          axis 0 0 1
+          anchor -0.0019 0.033 0
+        }
+        device RotationalMotor { name "motor3" }
+        endPoint Solid {
+          name "rotating_top"
+          translation 0 -0.001 0
+          children [
+            Transform {
+              translation -0.004 0.019 0
+              scale IS topScale
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColor 0 0.1 0.2
+                    roughness 1
+                    metalness 0
+                  }
+                  geometry Mesh {
+                    url ["../Robot/top.stl"]
+                  }
+                }
+              ]
+            }
+            DistanceSensor {
+              translation 0 0 0.05  # Positioned slightly above the top
+              rotation 0 0 1 -1.5708  # Pointing forward
+              name "distance_sensor"
+              type "sonar"
+              aperture 0.1
+              lookupTable [
+                0 0 0
+                2 2 0.01
+              ]
+            }
+          ]
+        }
+      }
+
+      HingeJoint {
+        jointParameters HingeJointParameters {
+          anchor 0.041 0.034 0.029
+          axis 1 0 0
+        }
+        device RotationalMotor { name "motor1" maxTorque 300 }
+        endPoint Solid {
+          name "right_wheel"
+          translation 0.041 0.034 0.029
+          rotation 0 1 0 1.5708
+          children [
+            Shape {
+              appearance PBRAppearance {
+                baseColor 0 0 0
+                roughness 1
+                metalness 0
+              }
+              geometry Cylinder { height 0.01 radius 0.025 }
+            }
+          ]
+          boundingObject Cylinder {
+            height 0.01
+            radius 0.025
+          }
+          physics Physics {
+            mass 0.08
+          }
+        }
+      }
+
+      HingeJoint {
+        jointParameters HingeJointParameters {
+          anchor -0.047 0.034 0.029
+          axis 1 0 0
+        }
+        device RotationalMotor { name "motor2" maxTorque 300 }
+        endPoint Solid {
+          name "left_wheel"
+          translation -0.047 0.034 0.029
+          rotation 0 1 0 1.5708
+          children [
+            Shape {
+              appearance PBRAppearance {
+                baseColor 0 0 0
+                roughness 1
+                metalness 0
+              }
+              geometry Cylinder { height 0.01 radius 0.025 }
+            }
+          ]
+          boundingObject Cylinder {
+            height 0.01
+            radius 0.025
+          }
+          physics Physics {
+            mass 0.08
+          }
+        }
+      }
+
+      Solid {
+        translation -0.003 -0.048 0.015
+        name "ball_physics_override"
+        boundingObject Sphere {
+          radius 0.005
+          subdivision 2
+        }
+        physics Physics {
+          density -1
+          mass 0.05
+          centerOfMass [0 0 -0.002]
+        }
+        contactMaterial "ball_material"
+      }
+
+      BallJoint {
+        jointParameters BallJointParameters {
+          anchor -0.004 -0.05 0.011
+        }
+        jointParameters2 JointParameters {}
+        jointParameters3 JointParameters {
+          axis 0 1 0
+        }
+        endPoint Solid {
+          translation -0.004 -0.05 0.011
+          children [
+            DEF caster Shape {
+              appearance PBRAppearance {}
+              geometry Sphere {
+                radius 0.01
+              }
+            }
+          ]
+          boundingObject USE caster
+          physics Physics {}
+        }
+      }
+    ]
+    boundingObject Pose {
+      translation -0.003 -0.048 0.015
+      children [ Capsule { height 0.01 radius 0.005 } ]
+    }
+    physics Physics { mass 0.5 }
+  }
+}
