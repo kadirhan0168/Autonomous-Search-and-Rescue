@@ -3,65 +3,71 @@ import json
 import math
 import sys
 import threading
+import time 
 
+# MQTT client for the car controller
 class CarController:
     def __init__(self, color, mqtt_client):
         self.color = color
-        self.position = (0, 0, 0)  # Eigen positie: x, y, angle
-        self.other_position = None  # Positie van de andere auto
-        self.target = None  # Doelpositie
+        self.position = (0, 0, 0)
+        self.other_position = None
+        self.target = None
         self.client = mqtt_client
-        self.last_command = None  # Laatst verstuurde commando
-
+        self.last_command = None
+        self.silent_until = 0 
+        
+    # Callback for incoming MQTT messages
     def on_message(self, client, userdata, msg):
-        # Verwerk binnenkomende MQTT-berichten
         topic = msg.topic
         try:
             data = json.loads(msg.payload.decode())
         except json.JSONDecodeError:
             print(f"{self.color.upper()}: Ongeldige JSON op {topic}")
             return
-
+        
+        ## Check if the message is relevant to this car      
         if topic == f"cars/orientation/{self.color}":
-            # Eigen positiedata ontvangen
-            self.position = (data['x'], data['y'], data['angle'])
+            self.position = (data['x'], data['y'], data['angle']) # positie of the car
             self.navigate()
         elif topic == f"cars/orientation/{'red' if self.color == 'blue' else 'blue'}":
-            # Positiedata van andere auto ontvangen
             self.other_position = (data['x'], data['y'], data['angle'])
             self.navigate()
         elif topic == "drone/block":
-            # Doelpositie ontvangen
             self.target = (data['x'], data['y'])
             self.navigate()
+        elif topic == "cars/status/red" and self.color == "red":
+            status = msg.payload.decode().strip().lower()
+            if status == "stop":
+                print(f"{self.color.upper()}: STOP ontvangen op status topic → 5 seconden stilte")
+                self.silent_until = time.time() + 5
 
+    # Navigate towards the target position
     def navigate(self):
-        # Controleer of zowel positie als doel bekend zijn
         if not self.target or not self.position:
             print("Wachten op positie of target...")
             return
-
+        
+        ## Calculate distance and angle to the target
         x, y, angle = self.position
         tx, ty = self.target
         distance = math.hypot(tx - x, ty - y)
-
-        # Voorkom botsing als de andere auto dichtbij is
+#        # Check if the other car is close enough to avoid
         if self.other_position:
             ox, oy, _ = self.other_position
             afstand_tot_andere = math.hypot(ox - x, oy - y)
-            print(f"afstand tot andere auto: {int(afstand_tot_andere)}px")
-
-            if afstand_tot_andere < 150:
+            
+            # If the other car is too close, avoid it
+            if afstand_tot_andere < 80:
                 print(f"{self.color.upper()} ontwijkt andere auto ({int(afstand_tot_andere)}px)")
 
-                # Bereken hoek weg van de andere auto
+               # Calculate the direction to avoid the other car
                 dx = x - ox
                 dy = y - oy
                 weg_hoek = math.degrees(math.atan2(dy, dx)) % 360
                 huidige_hoek = angle % 360
                 hoekverschil = (weg_hoek - huidige_hoek + 540) % 360 - 180
 
-                # Kies de juiste ontwijkrichting
+                # Determine the direction to avoid
                 if abs(hoekverschil) > 20:
                     direction = "right" if hoekverschil > 0 else "left"
                 else:
@@ -70,23 +76,22 @@ class CarController:
                 print(f"Uitwijkrichting: {direction.upper()}")
                 self.send_command(direction)
 
-                # Probeer na 1.5 seconde opnieuw te navigeren
                 threading.Timer(1.5, self.navigate).start()
                 return
-
-        # Bereken navigatiehoek richting doel
+        
+        ## Calculate the angle to the target
         dx, dy = tx - x, ty - y
         target_angle = math.degrees(math.atan2(dy, dx)) % 360
         current_angle = angle % 360
         angle_diff = (target_angle - current_angle + 540) % 360 - 180
 
-        # Toon statusinformatie
+       # Print navigation details
         print(f"\n{self.color.upper()} Auto:")
         print(f"Positie: ({x}, {y}) | Hoek: {int(angle)} graden")
         print(f"Doel: ({tx}, {ty}) | Afstand: {int(distance)} pixels | Richting: {int(target_angle)} graden")
         print(f"Hoekverschil: {int(angle_diff)} graden")
 
-        # Bepaal actie richting doel
+        # Determine command based on distance and angle difference
         if distance < 150:
             command = "stop"
             print("Doel bereikt")
@@ -99,18 +104,19 @@ class CarController:
 
         self.send_command(command)
 
+    # Send command to the MQTT broker
     def send_command(self, action):
-        # Verstuur commando alleen als het anders is dan het vorige
-        if action != self.last_command:
-            topic = f"cars/control/{self.color}"
-            self.client.publish(topic, action)
-            self.last_command = action
-            print(f"Verzonden naar {topic}: {action}\n")
-        else:
-            print(f"Zelfde commando '{action}' wordt niet opnieuw verzonden.")
+        if self.color == "red" and time.time() < self.silent_until:
+            print(f"{self.color.upper()}: In stilteperiode, '{action}' niet verzonden.")
+            return
 
+        topic = f"cars/control/{self.color}/"
+        self.client.publish(topic, action)
+        print(f"Verzonden naar {topic}: {action}\n")
+
+
+# Main function to run the car client
 def main():
-    # Check of kleurargument is meegegeven
     if len(sys.argv) != 2:
         print("Gebruik: python car_client.py <kleur>")
         sys.exit(1)
@@ -119,24 +125,24 @@ def main():
     if color not in ['red', 'blue']:
         print("Ongeldige kleur. Kies uit: red, blue")
         sys.exit(1)
-
-    # MQTT-client initialiseren
+   
+    # Initialize MQTT client   
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
     car = CarController(color, client)
     client.on_message = car.on_message
 
     try:
-        # Verbinden met MQTT-broker
         client.connect("172.20.10.2", 1883, 60)
     except:
         print(f"{color.upper()}: Kan geen verbinding maken met MQTT broker.")
         sys.exit(1)
 
-    # Topics abonneren voor beide auto's en het doel
+    # Subscribe to topics for the car's color and the other color
     other_color = 'red' if color == 'blue' else 'blue'
     client.subscribe(f"cars/orientation/{color}")
     client.subscribe(f"cars/orientation/{other_color}")
     client.subscribe("drone/block")
+    client.subscribe("cars/status/red")  
 
     print(f"Auto-controller gestart voor kleur: {color.upper()}...")
     client.loop_forever()
