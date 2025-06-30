@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Auto Tracker</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    #controls {
+      padding: 10px;
+      background-color: #f0f0f0;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      border-bottom: 1px solid #ccc;
+    }
+
+    #container {
+      position: relative;
+      display: inline-block;
+    }
+
+    #videoFeed, #canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    canvas {
+      border: 2px solid black;
+      z-index: 10;
+      cursor: crosshair;
+    }
+
+    #status {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <label for="target_type">Selecteer type:</label>
+    <select id="target_type">
+      <option value="veld">Werkveld</option>
+      <option value="auto1">Auto 1</option>
+      <option value="auto2">Auto 2</option>
+      <option value="auto3">Auto 3</option>
+    </select>
+
+    <button id="submitBtn">✅ Koppel box</button>
+    <span id="status"></span>
+  </div>
+
+  <div id="container">
+    <img id="videoFeed" src="{{ url_for('video_feed') }}">
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <script>
+    const img = document.getElementById("videoFeed");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const dropdown = document.getElementById("target_type");
+    const submitBtn = document.getElementById("submitBtn");
+    const status = document.getElementById("status");
+
+    let startX, startY, isDrawing = false, currentBox = null;
+
+    function resizeCanvas() {
+      canvas.width = img.clientWidth;
+      canvas.height = img.clientHeight;
+    }
+
+    img.onload = resizeCanvas;
+    window.addEventListener("resize", resizeCanvas);
+
+    canvas.addEventListener("mousedown", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      startX = e.clientX - rect.left;
+      startY = e.clientY - rect.top;
+      isDrawing = true;
+    });
+
+    canvas.addEventListener("mousemove", (e) => {
+      if (!isDrawing) return;
+      const rect = canvas.getBoundingClientRect();
+      const currentX = e.clientX - rect.left;
+      const currentY = e.clientY - rect.top;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = "red";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(startX, startY, currentX - startX, currentY - startY);
+    });
+
+    canvas.addEventListener("mouseup", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const endX = e.clientX - rect.left;
+      const endY = e.clientY - rect.top;
+
+      currentBox = {
+        x1: Math.min(startX, endX),
+        y1: Math.min(startY, endY),
+        x2: Math.max(startX, endX),
+        y2: Math.max(startY, endY)
+      };
+
+      isDrawing = false;
+      status.textContent = `Geselecteerde box voor: ${dropdown.value}`;
+    });
+
+    submitBtn.addEventListener("click", () => {
+      if (!currentBox) {
+        status.textContent = "Selecteer eerst een box.";
+        return;
+      }
+
+      const auto_id = dropdown.value;
+      submitBtn.disabled = true;
+      status.textContent = `Versturen...`;
+
+      fetch("/register_box", {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          auto_id: auto_id,
+          box: currentBox
+        })
+      }).then(resp => {
+        if (resp.ok) {
+          status.textContent = `${auto_id} geregistreerd.`;
+        } else {
+          resp.text().then(t => {
+            status.textContent = `Fout: ${t}`;
+          });
+        }
+      }).catch(() => {
+        status.textContent = "Serverfout.";
+      }).finally(() => {
+        submitBtn.disabled = false;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        currentBox = null;
+      });
+    });
+  </script>
+</body>
+</html>
