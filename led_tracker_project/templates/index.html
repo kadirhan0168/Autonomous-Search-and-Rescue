@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Live Video Feed</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            text-align: center;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+        }
+
+        img {
+            border: 4px solid white;
+            border-radius: 8px;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .slider-container {
+            margin-top: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .slider-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        input[type=range] {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Live Video Feed</h1>
+
+    <img src="{{ url_for('video_feed') }}" width="720">
+
+    <script>
+        function updateSetting(color, setting, value) {
+            document.getElementById("val-" + color).innerText = value;
+
+            fetch("/update_settings", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    color: color,
+                    setting: setting,
+                    value: parseInt(value)
+                })
+            }).then(response => {
+                if (!response.ok) {
+                    console.error("Fout bij verzenden:", response.statusText);
+                }
+            }).catch(err => {
+                console.error("Verbindingsfout:", err);
+            });
+        }
+    </script>
+</body>
+</html>
