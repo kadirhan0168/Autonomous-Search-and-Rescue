@@ -101,17 +101,6 @@ def publish_car_data(car_id, point_back, point_front):
 
     mqtt_client.publish(f"cars/orientation/{car_id}", json.dumps(data))
 
-# Kleurbereiken (HSV)
-# color_ranges = {
-    # 'red':          [(0, 160, 180), (10, 255, 255)],
-    # 'green':        [(40, 160, 180), (80, 255, 255)],
-    # 'blue':         [(100, 150, 220), (130, 255, 255)],
-    # 'block':        [(130, 50, 50), (160, 255, 255)],
-    # 'front_red':    [(20, 100, 100), (40, 255, 255)],
-    # 'front_green':  [(10, 100, 20), (20, 255, 180)],
-    # 'front_blue':   [(0, 0, 200), (180, 30, 255)]
-# }
-
 min_area = 150
 min_front_area = 25
 
@@ -124,52 +113,6 @@ def publish_position(topic, x, y, angle=None):
     if angle is not None:
         payload['angle'] = angle
     mqtt_client.publish(topic, json.dumps(payload))
-
-# def detect_orientation(hsv_frame, color):
-    # main_mask = cv2.inRange(hsv_frame, 
-                            # np.array(color_ranges[color][0]), 
-                            # np.array(color_ranges[color][1]))
-    
-    # front_key = f"front_{color}"
-    # if front_key not in color_ranges:
-        # return None
-
-    # front_mask = cv2.inRange(hsv_frame, 
-                             # np.array(color_ranges[front_key][0]), 
-                             # np.array(color_ranges[front_key][1]))
-
-    # contours_main, _ = cv2.findContours(main_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    # contours_front, _ = cv2.findContours(front_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    # if contours_main and contours_front:
-        # c_main = max(contours_main, key=cv2.contourArea)
-        # if cv2.contourArea(c_main) > min_area:
-            # M_main = cv2.moments(c_main)
-            # if M_main["m00"] == 0:
-                # return None
-            # cx_main = int(M_main["m10"] / M_main["m00"])
-            # cy_main = int(M_main["m01"] / M_main["m00"])
-
-            # min_dist = float('inf')
-            # best_front = None
-            # for c_front in contours_front:
-                # if cv2.contourArea(c_front) < min_front_area:
-                    # continue
-                # M_front = cv2.moments(c_front)
-                # if M_front["m00"] == 0:
-                    # continue
-                # cx_front = int(M_front["m10"] / M_front["m00"])
-                # cy_front = int(M_front["m01"] / M_front["m00"])
-                # dist = math.hypot(cx_front - cx_main, cy_front - cy_main)
-                # if dist < min_dist:
-                    # min_dist = dist
-                    # best_front = (cx_front, cy_front)
-
-            # if best_front:
-                # cx_front, cy_front = best_front
-                # angle = math.degrees(math.atan2(cy_front - cy_main, cx_front - cx_main))
-                # return cx_main, cy_main, angle
-    # return None
 
 if __name__ == '__main__':
     robot = Robot()
@@ -216,31 +159,3 @@ if __name__ == '__main__':
             }
             mqtt_client.publish("drone_sim/target_coords", json.dumps(data))
             mqtt_client.publish("drone_sim/target_found", "found")
-
-        # Blokdetectie
-        # block_mask = cv2.inRange(hsv, np.array(color_ranges['block'][0]), np.array(color_ranges['block'][1]))
-        # block_contours, _ = cv2.findContours(block_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        # if block_contours:
-            # c = max(block_contours, key=cv2.contourArea)
-            # if cv2.contourArea(c) > min_area:
-                # x, y, w, h = cv2.boundingRect(c)
-                # cx, cy = x + w // 2, y + h // 2
-                # block_center = (cx, cy)
-                # publish_position("drone_sim/target_coords", cx, cy)
-                # mqtt_client.publish("drone_sim/target_found", "found")
-        # else:
-            # block_center = None
-
-        # Autodetectie per kleur
-        # for color in ['red', 'green', 'blue']:
-            # result = detect_orientation(hsv, color)
-            # if result:
-                # x, y, angle = result
-                # publish_position(f"cars/orientation/{color}", x, y, angle)
-
-                # if block_center is not None:
-                    # dist = math.hypot(block_center[0] - x, block_center[1] - y)
-                    # mqtt_client.publish(f"cars/distance/{color}", json.dumps({
-                        # "distance_pixels": dist,
-                        # "timestamp": time.time()
-                    # }))

@@ -18,8 +18,8 @@ class Waypoint:
 target_found = False
 target_found_time = None
 target_coordinates = None
-width = 1  # default fallback
-height = 1
+width = 1   # default value
+height = 1  # default value
 
 def pixel_to_webots(pixel_x, pixel_y, image_width, image_height, world_size=3.0):
     x = (pixel_x / image_width) * world_size

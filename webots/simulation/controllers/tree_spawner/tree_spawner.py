@@ -38,7 +38,6 @@ class TreeSpawner:
             }}"""
             children.importMFNodeFromString(-1, tree)
 
-# Create and run
 spawner = TreeSpawner()
 while spawner.supervisor.step(32) != -1:
-    pass  # Just keep the controller running
+    pass

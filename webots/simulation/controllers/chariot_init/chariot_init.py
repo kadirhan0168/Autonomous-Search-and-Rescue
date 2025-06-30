@@ -5,7 +5,7 @@ import json
 import math
 import threading
 
-def pixel_to_webots(pixel_x, pixel_y, image_width, image_height, world_size=3.0):
+def pixel_to_webots(pixel_x, pixel_y, image_width, image_height, world_size=1.5):
     x = (pixel_x / image_width) * world_size - world_size / 2
     y = ((image_height - pixel_y) / image_height) * world_size - world_size / 2
     return x, y
@@ -15,9 +15,9 @@ class ChariotInitializer:
         self.supervisor = Supervisor()
         self.timestep = int(self.supervisor.getBasicTimeStep())
         
-        self.image_width = 880  # camera
-        self.image_height = 1030  # camera
-        self.world_size = 3.0
+        self.image_width = 880      # camera width
+        self.image_height = 1030    # camera height
+        self.world_size = 1.5
         self.has_moved_blue = False
         self.has_moved_red = False
         self.has_moved_target = False
@@ -31,7 +31,7 @@ class ChariotInitializer:
             print("ERROR: Chariots not found!")
             return
         
-        # Translation and rotation fields for both chariots
+        # Translation and rotation fields for chariots and target
         self.trans_field_blue = self.chariot_blue.getField("translation")
         self.trans_field_red = self.chariot_red.getField("translation")
         
@@ -48,20 +48,18 @@ class ChariotInitializer:
         # Connect to the MQTT broker
         self.mqtt_client.connect("172.20.10.2", 1883, 60)
 
-        # Start MQTT loop in a separate thread to avoid blocking the main simulation
+        # Start MQTT loop in a separate thread
         threading.Thread(target=self.mqtt_client.loop_forever, daemon=True).start()
 
-        # Wait until MQTT is connected before starting the simulation loop
+        # Wait until MQTT is connected
         self.wait_for_mqtt_connection()
 
-        # Once connected, start the simulation loop and allow the first message to trigger the movement
         while self.supervisor.step(self.timestep) != -1:
             if self.has_moved_blue and self.has_moved_red:
                 self.supervisor.simulationSetMode(self.supervisor.SIMULATION_MODE_PAUSE)
                 break
 
     def wait_for_mqtt_connection(self):
-        # Wait until the MQTT client connects to the broker
         while not self.mqtt_client.is_connected():
             time.sleep(0.1)
         print("MQTT client connected, starting simulation...")
@@ -69,18 +67,17 @@ class ChariotInitializer:
     def on_connect(self, client, userdata, flags, rc):
         print("Connected to MQTT broker with result code " + str(rc))
         client.subscribe("cars/orientation/blue")
-        client.subscribe("cars/orientation/red")  # Subscribe to the red chariot's topic
+        client.subscribe("cars/orientation/red")
         client.subscribe("drone/block")
 
     def on_message(self, client, userdata, msg):
         if not self.has_moved_red or not self.has_moved_blue or not self.has_moved_target:
             try:
                 payload = msg.payload.decode()
-                data = json.loads(payload)  #{"x": float, "y": float, "angle": float}
+                data = json.loads(payload)      # {"x": float, "y": float, "angle": float}
     
                 pixel_x = data["x"]
                 pixel_y = data["y"]
-                # angle_deg = data["angle"]
                 angle_deg = data.get("angle") if "angle" in data else 0
     
                 if msg.topic == "cars/orientation/blue":
@@ -110,15 +107,10 @@ class ChariotInitializer:
         trans_field.setSFVec3f(new_position)
         rot_field.setSFRotation(rotation)
 
-        # Print out the current rotation (for debugging)
-        current_rot = rot_field.getSFRotation()
-        current_deg = math.degrees(current_rot[3])
-        print(f"{chariot_color} chariot actual rotation: {current_deg}°")
-
         if chariot_color == "red":
-            self.has_moved_red = True  # Mark blue chariot as moved
+            self.has_moved_red = True
         else:
-            self.has_moved_blue = True  # Mark red chariot as moved
+            self.has_moved_blue = True
             
     def move_target(self, trans_field_target, pixel_x, pixel_y):
         # Convert pixel to Webots coordinates for the target
@@ -126,13 +118,9 @@ class ChariotInitializer:
         new_position = [x, y, 0.00]
         print(f"Moving target to position: {new_position}")
 
-        # Apply translation (no rotation for target)
+        # Apply translation
         trans_field_target.setSFVec3f(new_position)
 
-        # Print out the current position for the target (for debugging)
-        current_position = trans_field_target.getSFVec3f()
-        print(f"Target actual position: {current_position}")
-
-        self.has_moved_target = True  # Mark target as moved
+        self.has_moved_target = True
 
 controller = ChariotInitializer()

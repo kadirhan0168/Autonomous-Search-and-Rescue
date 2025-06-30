@@ -33,13 +33,12 @@ PROTO chariot_blue [
         ]
       }
 
-      # Front White LED
       Transform {
-        translation -0.003 -0.057 0.029  # Positioned at front
+        translation -0.003 -0.057 0.029
         children [
           Shape {
             appearance PBRAppearance {
-              baseColor 1 1 1  # White
+              baseColor 1 1 1
               emissiveColor 1 1 1
               roughness 0.3
               metalness 0.1
@@ -51,13 +50,12 @@ PROTO chariot_blue [
         ]
       }
 
-      # Rear Blue LED
       Transform {
-        translation -0.003 0.065 0.029  # Positioned at back
+        translation -0.003 0.065 0.029
         children [
           Shape {
             appearance PBRAppearance {
-              baseColor 0 0 1  # Blue
+              baseColor 0 0 1
               emissiveColor 0 0 1
               roughness 0.3
               metalness 0.1
@@ -96,8 +94,8 @@ PROTO chariot_blue [
               ]
             }
             DistanceSensor {
-              translation 0 0 0.05  # Positioned slightly above the top
-              rotation 0 0 1 -1.5708  # Pointing forward
+              translation 0 0 0.05
+              rotation 0 0 1 -1.5708
               name "distance_sensor"
               type "sonar"
               aperture 0.1
