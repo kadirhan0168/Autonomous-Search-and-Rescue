@@ -89,10 +89,10 @@ class ChariotMQTTController:
 
     def left(self):
         self.left_motor.setVelocity(self.wheel_velocity)
-        self.right_motor.setVelocity(self.wheel_velocity * 2.0)
+        self.right_motor.setVelocity(self.wheel_velocity * 2.2)
 
     def right(self):
-        self.left_motor.setVelocity(self.wheel_velocity * 2.0)
+        self.left_motor.setVelocity(self.wheel_velocity * 2.2)
         self.right_motor.setVelocity(self.wheel_velocity)
 
     def execute_command(self):
