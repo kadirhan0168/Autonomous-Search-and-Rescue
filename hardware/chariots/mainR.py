@@ -34,22 +34,12 @@ def measure_distance():
     trig.value(1)
     time.sleep_us(10)
     trig.value(0)
-
-    timeout = 1000000  # Timeout value in microseconds
-    start = time.ticks_us()
-
     while echo.value() == 0:
-        if time.ticks_diff(time.ticks_us(), start) > timeout:
-            return 999  # Timeout: no echo received
-    pulse_start = time.ticks_us()
-
+        pulse_start = time.ticks_us()
     while echo.value() == 1:
-        if time.ticks_diff(time.ticks_us(), pulse_start) > timeout:
-            return 999  # Timeout while waiting for end of echo
-    pulse_end = time.ticks_us()
-
+        pulse_end = time.ticks_us()
     duration = time.ticks_diff(pulse_end, pulse_start)
-    distance = duration * 0.0343 / 2  # Convert to cm
+    distance = duration * 0.0343 / 2
     return round(distance, 0)
 
 fled = Pin(20, Pin.OUT)  # Front LED
@@ -118,14 +108,14 @@ if connect_to_wifi():
     try:
         while True:
             distance = measure_distance()  # Read distance from ultrasonic sensor
-
+            print(distance)
             client.check_msg()             # Check for incoming MQTT messages
             execute_command()             # Execute the last received movement command
 
             if 10 <= distance <= 15:
+                client.publish(mqtt_status_topic, "obstakel")
                 print("Obstacle detected! Scanning...")
                 stop_motors()
-                client.publish(mqtt_status_topic, "stop")
                 client.publish(mqtt_topic, "stop")
 
                 set_servo_angle(25)
@@ -149,6 +139,7 @@ if connect_to_wifi():
                     client.publish(mqtt_topic, "forward")
                     move_forward()
                     time.sleep(1.9)
+                    client.publish(mqtt_status_topic, "done")
                 else:
                     print("Decision: Turn Left")
                     client.publish(mqtt_topic, "left")
@@ -157,6 +148,7 @@ if connect_to_wifi():
                     client.publish(mqtt_topic, "forward")
                     move_forward()
                     time.sleep(1.9)
+                    client.publish(mqtt_status_topic, "done")
             else:
                 client.check_msg()
                 execute_command()
@@ -165,3 +157,5 @@ if connect_to_wifi():
         print("Error:", e)
         client.disconnect()
         stop_motors()
+
+

@@ -10,7 +10,7 @@ password = 'mohamed1'
 # MQTT broker and topic
 mqtt_broker = '172.20.10.2'
 mqtt_topic = 'cars/control/blue/'
-
+mqtt_status_topic = 'cars/status/blue'  # Topic voor statusberichten
 # Motor PWM setup
 PWM_LM = 6
 PWM_RM = 7
@@ -122,11 +122,12 @@ if connect_to_wifi():
     try:
         while True:
             distance = measure_distance()
-
+            print(distance)
             client.check_msg()
             execute_command()
 
             if 10 <= distance <= 18:
+                client.publish(mqtt_status_topic, "obstakel")
                 print("Obstacle detected! Scanning environment...")
                 stop_motors()
                 client.publish(mqtt_topic, "stop")
@@ -152,6 +153,7 @@ if connect_to_wifi():
                     move_forward()
                     client.publish(mqtt_topic, "forward")
                     time.sleep(2)
+                    client.publish(mqtt_status_topic, "done")
                 else:
                     print("Decision: Turn Left")
                     turn_left()
@@ -160,6 +162,7 @@ if connect_to_wifi():
                     move_forward()
                     client.publish(mqtt_topic, "forward")
                     time.sleep(2)
+                    client.publish(mqtt_status_topic, "done")
             else:
                 client.check_msg()
                 execute_command()
@@ -168,3 +171,5 @@ if connect_to_wifi():
         print("Error:", e)
         client.disconnect()
         stop_motors()
+
+
