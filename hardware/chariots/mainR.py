@@ -3,10 +3,10 @@ import time
 from machine import Pin, PWM
 from simply import MQTTClient  # Import MQTT client for communication
 
-ssid = 'Mohamed Elshakh'  # WiFi name
-password = 'mohamed1'     # WiFi password
+ssid = ''               # Add own SSID
+password = ''           # Add WiFi password
 
-mqtt_broker = '172.20.10.2'  # MQTT broker IP
+mqtt_broker = ''        # Add MQTT broker IP address
 mqtt_topic = 'cars/control/red/'  # Topic for control commands
 mqtt_status_topic = 'cars/status/red'  # Topic for status updates
 
@@ -107,10 +107,10 @@ if connect_to_wifi():
 
     try:
         while True:
-            distance = measure_distance()  # Read distance from ultrasonic sensor
+            distance = measure_distance()   # Read distance from ultrasonic sensor
             print(distance)
-            client.check_msg()             # Check for incoming MQTT messages
-            execute_command()             # Execute the last received movement command
+            client.check_msg()              # Check for incoming MQTT messages
+            execute_command()               # Execute the last received movement command
 
             if 10 <= distance <= 15:
                 client.publish(mqtt_status_topic, "obstakel")

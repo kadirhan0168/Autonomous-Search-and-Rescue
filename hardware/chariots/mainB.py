@@ -4,13 +4,14 @@ from machine import Pin, PWM
 from simply import MQTTClient  # Import MQTT client for communication
 
 # WiFi credentials
-ssid = 'Mohamed Elshakh'
-password = 'mohamed1'
+ssid = ''               # Add own SSID
+password = ''           # Add WiFi password
 
 # MQTT broker and topic
-mqtt_broker = '172.20.10.2'
+mqtt_broker = ''        # Add MQTT broker IP address
 mqtt_topic = 'cars/control/blue/'
-mqtt_status_topic = 'cars/status/blue'  # Topic voor statusberichten
+mqtt_status_topic = 'cars/status/blue'
+
 # Motor PWM setup
 PWM_LM = 6
 PWM_RM = 7
